@@ -1,7 +1,7 @@
 # exp-os
 An Experimental Operating System for the OS Lab under NITC's CSE Curriculum. The goal for this project is to create a primitive operating system within 3 months by building upon the necessary files and resources maintained by the alumni.
 
-##Stage 1:
+## Stage 1:
 
 1. This stage involves downloading and installing the necessary libraries required to setup expos on the system.
 2. After which, we download the resources and executables required for the operating system using the __curl__ command.
@@ -23,4 +23,51 @@ Since we have installed a previous version of gcc, we must update the Makefiles 
 5. Within the subdirectory of the myexpos folder, each of them contain a Makefile in which "cc=gcc" is mentioned at the top. Modify this line to mention "cc=gcc-13". 
 6. One thing to note is that the Makefile in the xsm folder has "cc=cc" mentioned which could just be a typing error; correct this to "cc=gcc-13" as done previously.
 
-Finally, run __make__ again. It should produce all the necessary directories other than the 'test' folder.
+Finally, run __make__ again. It should produce all the necessary directories other than the 'test' folder. Note: it may generate a bunch of errors but this is fine because we rolled back the version of gcc to a version which treats the fatal errors as warnings.
+
+
+## Stage 2:
+
+Three Types of Files: Root File, Data File, Executable file (XEXE). The XFS disk has certain blocks reserved for storing the metadata of the files on disk. 
+
+Each data file / executable takes atmost 4 data blocks = 4 * 512 words = 2048 words
+
+### Root File:
+The root file has name root. Each entry in the root file is 8 words: FILENAME:1 FILESIZE:1 FILETYPE:1 USERNAME:1 PERMISSION:1 Unused:3
+The Username and Permission field is only used in the case of multiuser extension. The first root entry is for the root file itself.
+
+Also, MAX_FILE_NUM = 60 files. 60 entries = 60 * 8 words = 480 words
+A memory copy is stored in page 62 and ROOT_FILE points to the start of this data structure.
+
+
+### Inode Table:
+Each entry in inode table is 16 words. 8 of which is equivalent of what is used in Root File. 3 words + 2 words + 3 Unused. Then we have data blocks 1 to 4. each data block stores the block number of a data block of the file. then 4 is unused.
+
+Unused entries = -1
+
+fdisk: initialises the inode entry table with the values FILE_TYPE = 1, FILE_SIZE = 512, DATA_Block = 5 (stored in the 5th block, as per Memory Organisation)
+
+Free inode entry: -1 in file name field.
+
+A memory copy is stored in page 59 and INODE_TABLE points to the start of this data structure.
+
+Procedures done during fdisk (format disk):
+1. Initialises the inode entry table with the values FILE_TYPE=1, FILE_SIZE = 512, DATA_BLOCK = 5
+2. default password of root user is set to `user`
+
+## XFS-Interface
+
+The interface provided by expos that allows for transfer of files to the XFS and also tools for handling the file system / disk.
+Some commands of xfs-interface:
+
+```markdown
+fdisk : Format Disk
+load --data $HOME/myexpos/sample.dat
+```
+
+
+
+
+
+
+
