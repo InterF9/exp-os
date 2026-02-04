@@ -93,10 +93,40 @@ export sample.dat $HOME/myexpos/data.txt
 Inode table accessible by kernel only (access to datablock info i guess?)
 Root file accessible in both kernel and user mode. easier to search for a file from an application program.
 
+## Stage 3
+
+Understanding the machine organisation: There are two main modes of execution: privileged mode and unprivileged mode.
+Privileged mode gives full access to the memory and the disk.
+Unprivileged mode has access only to a restricted machine model called the XSM virtual machine. it is a subset of what is available in the privileged mode. this restricted machine model consists of the: virtual machine instruction set and the virtual machine memory model.
+
+Why does this separation exist? This model allows sandboxing of applications and software. So, when one piece of software crashes, it doesn't end up writing to some other memory location that's used for something critical. 
+The translation mechanism (in the next stages) restricts the access of memory
+
+### Bootstrap
+
+Disk blocks 0 to 1 store the bootstrap. block 0 specifically, will contain the OS Startup code.
+When the OS Starts up, the ROM Code is stored in the memory by default at page 0. it has two primary functions:
+1. it loads block 0 (the OS Startup Code, part of the bootstrap) onto memory page 1. remember: page 0 stores the ROM Code always.
+2. it sets the value of the IP (instruction pointer) to 512 which points to the beginning of page 1, where the OS Startup code would be stored.
+
+After making helloworld.xsm, we are going to load into the block 0 of disk.xfs
+
+We use the following command:
+
+```markdown
+# load --os <UNIXpath>
+```
+This loads the file <UNIXpath> onto block 0 of disk.xfs
+
+We can now run the experimental string machine (xsm) and see the output as:
+```markdown
+HELLO_WORLD
+Machine is halting.
+```
 
 
+## Stage 4
+Stage 4 involves writing low level code or modules using SPL, a much easier language to facilitate the process of building these modules. In this stage, we are writing a simple program to print odd numbers from 1 to 20.
 
-
-
-
+we use the keyword alias to store temporary data in registers, like traditional variables.
 
