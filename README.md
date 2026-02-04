@@ -37,11 +37,14 @@ The root file has name root. Each entry in the root file is 8 words: FILENAME:1 
 The Username and Permission field is only used in the case of multiuser extension. The first root entry is for the root file itself.
 
 Also, MAX_FILE_NUM = 60 files. 60 entries = 60 * 8 words = 480 words
-A memory copy is stored in page 62 and ROOT_FILE points to the start of this data structure.
+A memory copy is stored in page 62 and ROOT_FILE points to the start of this data structure. 
+username = the name of the user that owns the file
 
 
 ### Inode Table:
-Each entry in inode table is 16 words. 8 of which is equivalent of what is used in Root File. 3 words + 2 words + 3 Unused. Then we have data blocks 1 to 4. each data block stores the block number of a data block of the file. then 4 is unused.
+Each entry in inode table is 16 words. 8 of which is equivalent of what is used in Root File. 3 words + 2 words + 3 Unused. BUT 4TH WORD IS USERID, NOT USERNAME LIKE BEFORE.Then we have data blocks 1 to 4. each data block stores the block number of a data block of the file. then 4 is unused.
+
+Userid = index of the user in the usertable. (kernel = 0, root = 1) 
 
 Unused entries = -1
 
@@ -64,6 +67,32 @@ Some commands of xfs-interface:
 fdisk : Format Disk
 load --data $HOME/myexpos/sample.dat
 ```
+
+two things happen when the load command is executed:
+1. since this is less than 512 words, only 1 block is necessary for this and hence the system allocator, allocates the first block available which is block 69.
+2. an entry is made in inode table. since this file was loaded in through xfs-interface, the owner would be root and hence the userid field in the inodetable would be 1.
+
+command copy <x> <y> <path> would dump blocks x to y in path. Since 60 entries (remember MAX_FILES_NUM = 60 files) each 16 words, gives us 60 * 16 = 960 words + user table(MAX_USERS = 16), each 2 words, gives us 16 * 2 words = 32 words
+
+commands like `dump --inodeusertable` can also be used to dump the table directly to ./xfs-interface/inodeusertable.txt
+
+now lets retrieve back the data we've loaded in, which was loaded in block 69 by the internal allocator. we can use the aforementioned copy command to get this.
+
+```markdown
+copy 69 69 $HOME/myexpos/data.txt
+```
+We would get the entire data in that block writtenin the txt file. But it will not have the same line formatting as the input file.
+This is because each word is 16 characters long (can we assume 1 word = 16 bytes) and it would return word by word.
+
+Alternative method to retrieve data from xfs: use export command, with the internal file name, and it will work. for ex:
+
+```markdown
+export sample.dat $HOME/myexpos/data.txt
+```
+
+Inode table accessible by kernel only (access to datablock info i guess?)
+Root file accessible in both kernel and user mode. easier to search for a file from an application program.
+
 
 
 
