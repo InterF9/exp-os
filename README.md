@@ -130,3 +130,111 @@ Stage 4 involves writing low level code or modules using SPL, a much easier lang
 
 we use the keyword alias to store temporary data in registers, like traditional variables.
 
+## Stage 5
+
+Stage 5 introduces the concept of a debug mode and instructions that help us to debug a program by certain methods, one of them being viewing the contents of the registers / memory for each instruction.
+
+NOTE: Each instruction = 2 words.
+1 word = 16 bytes
+
+using ./xsm --debug only processes the breakpoint statements and pauses. otherwise, it ignores as if it were never there. 
+in debug mode, the following commands are available
+1. `reg` shows the values of the registers at that point of time.
+2. `mem <x>` dumps the values of the memory page x into a file in the CWD.
+3. `s` executes the next instruction (if any).
+4. `c` executes the instructions until the next breakpoint (if any).
+
+
+# XSM Virtual Machine Model and The Page Table
+
+Only a few of the registers are available in unprivileged mode, namely: R0-R19, BP, SP, IP.
+The virtual model is a continguous address space from 0 -> 512 * **PTLR** - 1 (PTLR = Page Table Length Register)
+
+Each application only gets PTLR words of memory. And the logical page number the process uses, is not necessarily the same as the physical address.
+So, we create a mapping from the logical address (0 to 512 * PTLR - 1) to the physical addresses.
+This mapping is stored in the **Page Table**.
+The page table, has entries that specify which physical page it has to refer to, as well as the permissions associated to that page.
+so each entry looks like this:
+
+PHYSICAL PAGE #0
+AUXILIARY INFO #0
+PHYSICAL PAGE #1
+AUXILIARY INFO #1
+.
+.
+PHYSICAL PAGE #PTLR * 512 - 1
+AUXILIARY INFO #PTLR * 512 - 1
+
+This is the structure of the Page Table in which 2 words consist of 1 page.
+The auxiliary bits are **R**eferenced **V**alidity **W**rite **D**irty
+
+Reference bit: Whether the page has been referenced or not. 0 on initialization, 1 after it gets referenced.
+Validity Bit: Whether the page entry corresponds to a valid page within the memory. 1 if valid, 0 if not
+Write Permission Bit: 1 if the user mode program is allowed to write into it. 0 if not. Exception if tried to access while 0.
+Dirty Bit: Set to 1 if an instruction modifies the contents of the page.
+
+to recap: Page Table stores information about which page each virtual page refers to, and its permissions.
+
+but the translation isnt done just by referring to the pt. we take the address, find WHICH corresponding page to refer to. how do we do this?
+let's keep one thing in mind: we really are finding the mapping of which page to refer to. the offset remains __same__. the offset with respect to the logical page as well as the physical page is the same.
+
+now. which entry of the page table do we refer to? we refer to the (LogicalAddress // 512)<sup>th</sup> __entry__.
+Now, remember, if you are at the nth entry, the next entry will start after 2 words, and the one after that will be 2 words later. So, in essence: The __location__ would be 2 * (LogicalAddress // 512). now, since we're looking at the entries of the page table, we should start from the PTBR value.
+
+
+```markdown
+PhysicalPageNumber  = the value at: PTBR + 2 * (LogicalAddress // 512)
+                    = [PTBR + 2 * (LogicalAddress // 512)]
+```
+
+now, remember offset of the address from the beginning of the page is same.
+
+```markdown
+OffsetPhysical = OffsetLogical
+OffsetPhysical = LogicalAddress % 512
+```
+
+Finally, combining it all:
+
+```markdown
+PhysicalAddress = PhysicalPageNumber * 512 + OffsetPhysical
+                = [PTBR + 2 * (LogicalAddress // 512)] * 512 + LogicalAddress % 512
+```
+
+oh also remember the index starts from 0.
+
+## Stage 6
+
+quick exercises to make us familiar with the translation.
+ensure it stays within PTLR.
+
+This stage involves creating a program that runs in user mode. When a program is in execution we call it a **process**
+
+onej thing to note: these xsm codes don't recognise labels.
+
+oh also: IN and OUT are privileged instructions. we cannot run them in user mode applications. but we would do this indirectly by later implementing a syscall handler(number 5) which invokes interrupt 7 which uses a print statement in SPL, that uses the OUT keyword.
+
+to halt programs, we use the INT 10 interrupt. and now we would write code for this interrupt. a simple `halt` written in spl and then compiled to xsm would do the job.
+after which, we load it into the machine for the specific interrupt location which we're able to do by 
+
+```markdown
+load --int=10 <path>
+```
+
+We also use the same haltprog.xsm as a handler for exceptions; any time the system encounters an exception, we execute the interrupt handler for exceptions which would run the same program.
+Exceptions raise interrupt 0.
+
+## The OS Startup Code
+
+//1. Load INIT from disk to memory
+//2. Load INT10 Module
+//3. Load Exception Handler
+//4. Setup page table registers
+//5. Setup page table for the page mapping + auxilliary info
+//6. Push 0 into stack, and set value of SP to point at that value
+//7. ireturn :)
+
+we do these tasks to facilitate the virtual memory mode of the init program and then finally, set the stack pointer to point at the value 0 in the stack page which indicates to start executing the next instruction from the start of the code of the init program. this os_startup file sets the context for executing the os_startup spl
+
+
+
