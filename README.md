@@ -267,4 +267,47 @@ Also: i had an encounter where it would randomly change the IP in between; this 
 
 ## Stage 8
 
+# Timer Interrupt:
 
+`xsm --timer 10` runs the interrupt timer every 10 instructions.
+
+After every 10 instructions, the following happens:
+1. Pushes IP onto stack
+2. Sets IP to 2048 (gets it from the interrupt vector table entry at location 493, which points to address 2048).
+3. Switches to privileged mode, and address translation is disabled.
+
+this is similar to the INT instruction but here the user application has no control of this happening
+Also: no timer interrupts in kernel mode
+**In a time sharing environment, the timer interrupt invokes the scheduler of the OS to schedule another process, when the current process has finished its time quanta.**
+
+## Stage 9
+
+We need to maintain two separate stacks, one for unprivileged and one for privileged. this is mainly for preventing hacks or restricted access.
+
+So, we actually have a data structure named the **process table** that stores info regarding a process. for example here, the user stack pointer and user area page number. The kernel assigns each process a user area page. despite its name, it is created by the kernel for a process. each user area page consists of a kernel stack and a per process resource table. 
+ 
+This process table starts from page number 56 (address 28672). it has space only for 16 entries (remember max 16 processes!) and each entry consists of 16 words. Since we only have one word, we'll be using the first 16 words from the aforementioned address.
+
+### Kernel Stack Management during hw interrupts and exceptions:
+
+Since the application does not have control over the transfer to the interrupt module, it would not have saved its context.
+In KPTR, the offset of the SP register within the User Area Page will be stored. not the actual physical address. This is to ensure that if the kernel relocates the user area page, the KPTR doesn't have to be affected.
+
+On entering a kernel module from user process, kStack = empty hence KPTR = 0.
+In usermode, kernel stack = empty, hence KPTR = 0;
+
+### Actions done upon entering the ISR (Interrupt Service Routine):
+
+IP+2 is ushed first
+1. Store value of SP to UPTR field (this process table entry now knows where to go back to)
+2. SP = UserAreaPageNumber * 512 - 1 (kernel stack is empty upon entry)
+3. save values of machine registers to the stack in the order: BP, R0 - R!9 with the BACKUP instruction. remember: this is saved in the kernel stack!
+4. Continue execution of ISR
+
+### Actions done upon leaving the ISR (Interrupt Service Routine):
+1. Execution of ISR is done
+2. Restore the values of the registers using RESTORE keyword
+3. SP = UPTR
+4. Transfer control back
+
+For assignment: Just add in `PRINT [SYSTEM_STATUS_TABLE + 1];`
