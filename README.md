@@ -170,7 +170,7 @@ The auxiliary bits are **R**eferenced **V**alidity **W**rite **D**irty
 
 Reference bit: Whether the page has been referenced or not. 0 on initialization, 1 after it gets referenced.
 Validity Bit: Whether the page entry corresponds to a valid page within the memory. 1 if valid, 0 if not
-Write Permission Bit: 1 if the user mode program is allowed to write into it. 0 if not. Exception if tried to access while 0.
+Write Permission Bit: 1 if the user mode program is allowed to write into it. 0 if not. Exception if tried to write while 0.
 Dirty Bit: Set to 1 if an instruction modifies the contents of the page.
 
 to recap: Page Table stores information about which page each virtual page refers to, and its permissions.
@@ -236,5 +236,35 @@ Exceptions raise interrupt 0.
 
 we do these tasks to facilitate the virtual memory mode of the init program and then finally, set the stack pointer to point at the value 0 in the stack page which indicates to start executing the next instruction from the start of the code of the init program. this os_startup file sets the context for executing the os_startup spl
 
+Also, keep a note of the final stack thing and the steps regarding the ireturn.
+
+1. privilege changes from kernel to user
+    what do we infer from this? since the privilege has changed to the user mode, we'll be using the address translationj scheme. in this scheme for atleast this program, we're using 2 pages code + 1 page stack.
+2. in order for the IP to point at the start of the program, we just have to make IP = 0; translation would ensure it would be at the start of the page.
+3. And then the value of SP is decremented by 1.
+
+
+## Stage 7
+
+ABI refers to the bridge between the user application and kernel
+Since we moved the code page from page 0 to page 4, we add 2048 words to the jump addresses, making up for the shift. additionally, we add 8 words, to satisfy the XEXE format
+
+one thing to note: the standard xsm instruction is 2 words. but the values of the header info is just 1 word. so make changes accordingly 
+
+When the program starts up, the first 2 pages are occupied for the library's code
+Page 2 and 3 are taken for heap space
+
+//1. Load library from 13 14 to 63 64
+//2. Preload the library to the disk block
+
+Library at pages 63 , 64
+Heap at 78, 79
+Code 65 66
+Stack 76 77
+
+
+Also: i had an encounter where it would randomly change the IP in between; this was actually the timer interrupt changing the IP and took me a couple of minutes to debug.... lowkey the perfect hint at the next stage
+
+## Stage 8
 
 
