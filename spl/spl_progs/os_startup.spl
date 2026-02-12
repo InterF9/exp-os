@@ -11,6 +11,11 @@ loadi(5, 18);
 loadi(22,35);
 loadi(23,36);
 
+//Load int7
+loadi(16,29);
+loadi(17,30);
+
+
 //load exception
 loadi(2,15);
 loadi(3,16);

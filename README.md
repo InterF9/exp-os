@@ -311,3 +311,38 @@ IP+2 is ushed first
 4. Transfer control back
 
 For assignment: Just add in `PRINT [SYSTEM_STATUS_TABLE + 1];`
+
+## Stage 10
+
+The write systemcall is serviced by interrupt routine 7
+
+Here, since the user application calls the system call, the OS expects the user program to do the context-saving before switching. The process goes like this:
+1. Save all registers in use
+2. Push Syscall (in this case Syscall 5)
+3. Push 3 arguments (Arg1: file descriptor, Arg2: The word to be written to the terminal)
+4. Push a register for Return value
+5. Invoke the interrupt by "INT 7" instruction. (here IP + 2 is automatically pushed into the stack! refer to diagram in stage 10)
+6. Pop out the return value to any register, here R1 works cause its not being used.
+7. Pop out the three values again to R1 because we dont need it
+8. Pop syscall, we don't need it
+9. Restore register context that we pushed initially
+
+difference between system call & interrupts? not 100% sure but interrupts are always expected to be triggered by the kernel or the system, meanwhile syscalls are called by the user program which inturn invokes interrupts. also the register saving happens on the user side rather than the kernel side with the use of backup and restore keywrod.
+
+syscalls deals with saving the registers, cause interrupts dont properly use them? but every syscall invokes an interrupt.
+
+Now, we build the interrupt handler for INT 7:
+
+
+### Building INT 7 Interrupt handler:
+1. Change `MODE` of the process table to 5.
+2. Refer to argument 1 by manual translation of the address from the UserStack
+3. Check validity of arg1
+4. If invalid, set the return value to -1
+5. If valid, do steps until 7: Calculate address of Arg2
+6. print word
+7. set return value of 0
+8. outside if-else block, set SP back to userSP
+9. set mode of process back to 0.
+
+NOTE; REMOVE EMPTY LINES AND COMMENTS FROM .XSM FILES, THEY WILL BE COUNTED AS NULL INSTRUCTIONS
