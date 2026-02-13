@@ -1,3 +1,7 @@
+//load idle
+loadi(69, 11);
+loadi(70, 12);
+
 //load init
 
 loadi(65,7);
@@ -15,7 +19,6 @@ loadi(23,36);
 loadi(16,29);
 loadi(17,30);
 
-
 //load exception
 loadi(2,15);
 loadi(3,16);
@@ -24,9 +27,52 @@ loadi(3,16);
 loadi(63, 13);
 loadi(64, 14);
 
-//initialise pt registers;
+
+//initialise pt registers for idle;
 
 PTBR = PAGE_TABLE_BASE;
+PTLR = 10;
+
+//Library at Page 0 and 1 - nah
+
+[PTBR + 0] = -1;
+[PTBR + 1] = "0000";
+[PTBR + 2] = -1;
+[PTBR + 3] = "0000";
+
+
+//Heaps at Page 2 and 3 - nah
+
+[PTBR + 4] = -1;
+[PTBR + 5] = "0000";
+[PTBR + 6] = -1;
+[PTBR + 7] = "0000";
+
+
+//INIT Code at Logical Page 4 and 5
+[PTBR + 8] = 69;
+[PTBR + 9] = "0100";
+[PTBR + 10] = 70;
+[PTBR + 11] = "0100";
+
+//Page 6 and 7 unreserved
+
+[PTBR + 12] = -1;
+[PTBR + 13] = "0000";
+[PTBR + 14] = -1;
+[PTBR + 15] = "0000";
+
+
+//Stack at Page 8 and 9
+[PTBR + 16] = 81;
+[PTBR + 17] = "0110";
+[PTBR + 18] = -1;
+[PTBR + 19] = "0000";
+
+
+//initialise pt registers for init;
+
+PTBR = PAGE_TABLE_BASE + 20;
 PTLR = 10;
 
 //Library at Page 0 and 1
@@ -65,17 +111,35 @@ PTLR = 10;
 [PTBR + 18] = 77;
 [PTBR + 19] = "0110";
 
-SP = 8*512;
 
-[76*512] = [65 * 512 + 1];
-//refer to 65th Page, get the second value
+//refer to 65th Page, get the second value -- STACK OF INIT
+//refer to 69th Page, get the second value -- STACK OF INIT
+SP = 8*512;
+[81 * 512] = [69*512 + 1];
+
+
+//Process Table entry: IDLE
+[PROCESS_TABLE + 1] = 0;
+[PROCESS_TABLE + 4] = CREATED;
+[PROCESS_TABLE + 11] = 82; //UAPN
+[PROCESS_TABLE + 12] = 0; //KPTR
+[PROCESS_TABLE + 13] = 8*512; //UPTR
+[PROCESS_TABLE + 14] = PAGE_TABLE_BASE; //PTBR
+[PROCESS_TABLE + 15] = PTLR; //PTLR
 
 //Process Table entry: INIT
-[PROCESS_TABLE + 11] = 80;
-[PROCESS_TABLE + 1] = 0;
+[PROCESS_TABLE + 16 + 1] = 1;
+[PROCESS_TABLE + 16 + 4] = RUNNING;
+[PROCESS_TABLE + 16 + 11] = 80; //UAPN
+[PROCESS_TABLE + 16 + 12] = 0; //KPTR
+[PROCESS_TABLE + 16 + 13] = 8*512; //UPTR
+[PROCESS_TABLE + 16 + 14] = PTBR; //PTBR
+[PROCESS_TABLE + 16 + 15] = PTLR; //PTLR	
 
-//Set current PID
-[SYSTEM_STATUS_TABLE + 1] = 0;
+SP = 8*512;
+[76 * 512] = [65*512 + 1];
 
+//Set current PID to INIT
+[SYSTEM_STATUS_TABLE + 1] = 1;
 
 ireturn;

@@ -1,0 +1,24 @@
+type
+	Student
+	{
+		str name;
+		int marks;
+	}
+endtype
+
+int main(){
+	decl
+		Student testVar;
+		int returnVal;
+	enddecl
+	begin
+		testVar = initialize();
+		testVar = alloc();
+		testVar.name = "John";
+		testVar.marks = 89;
+		returnVal = exposcall("Write", -2, testVar.name);
+		returnVal = exposcall("Write", -2, testVar.marks);
+	return 0;
+	end
+}
+		
