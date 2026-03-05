@@ -1,0 +1,29 @@
+alias functionNum R1;
+alias currentPID R2;
+alias word R3;
+
+if (functionNum != 3) then
+	return;
+else
+
+	//Acquire Terminal
+	multipush(R0, R1, R2, R3);
+	functionNum = 8;
+	//CurrentPID is passed as it is
+	
+	call MOD_0;
+	
+	multipop(R0, R1, R2, R3);
+	
+	print R3;
+	
+	//Release Terminal
+	multipush(R0, R1, R2, R3);
+	functionNum = 9;
+	//CurrentPID is passed as it is
+	
+	call MOD_0;
+	
+	multipop(R0, R1, R2, R3);
+	return;
+endif;
