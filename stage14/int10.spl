@@ -1,0 +1,18 @@
+alias currpid R0;
+currpid = [SYSTEM_STATUS_TABLE + 1];
+
+[PROCESS_TABLE + currpid * 16 + 4] = TERMINATED;
+
+alias i R1;
+i = 1;
+
+while ((i<16) && ([PROCESS_TABLE + 16*i + 4] == TERMINATED)) do
+    i = i+1;
+endwhile;
+
+if (i>=16) then
+	print "im gonna halttt";
+    halt;
+endif;
+
+call MOD_5;

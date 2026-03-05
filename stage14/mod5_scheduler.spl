@@ -1,0 +1,56 @@
+alias currentPID R1;
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+
+alias processTable R2;
+processTable = PROCESS_TABLE + currentPID * 16;
+
+multipush(BP);
+
+[processTable + 12] = SP % 512; //only offset because this is for the KPTR
+[processTable + 14] = PTBR;
+[processTable + 15] = PTLR;
+
+alias i R3;
+i = currentPID + 1;
+alias newPID R4;
+newPID = 0;
+
+//print "loop start";
+while (i < 16) do
+	//print [PROCESS_TABLE + i * 16 + 4];
+	if ([PROCESS_TABLE + i * 16 + 4] == CREATED || [PROCESS_TABLE + i * 16 + 4] == READY) then
+		//print "breaking..";
+		newPID = i;
+		break;
+	endif;
+	i = i + 1;
+endwhile;
+//print "loop end";
+
+if (i == 16) then //if end of the loop, just schedule idle
+	newPID = 0;
+endif;
+ 
+ 
+alias newProcTable R5;
+
+//Let processtable refer to the new program's process table
+newProcTable = PROCESS_TABLE + newPID * 16;
+
+SP = [newProcTable + 11] * 512 + [newProcTable + 12]; //UAPN + Offset (KPTR Field in ProcessTable)
+PTBR = [newProcTable + 14];
+PTLR = [newProcTable + 15];
+
+[SYSTEM_STATUS_TABLE + 1] = newPID;
+if ([newProcTable + 4] == CREATED) then
+	SP = [newProcTable + 13]; //Directly point to UPTR, and then ireturn
+	[newProcTable + 4] = RUNNING;
+	[newProcTable + 9] = 0;
+	ireturn;
+endif;
+
+[newProcTable + 4] = RUNNING;
+multipop(BP);
+
+return;
+

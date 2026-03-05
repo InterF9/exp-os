@@ -1,11 +1,12 @@
 int main()
 {
 	decl
-		int a;
+		int a,temp;
 	enddecl
 	begin
-		while(1==1) do
+		while(a < 200) do
 			a=1;
+			temp = exposcall("Write", -2, "IDLE");
 		endwhile;
 		return 0;
 	end

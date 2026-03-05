@@ -1,7 +1,5 @@
-breakpoint;
-[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13] = SP;
-
-SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11] * 512 - 1;
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13] = SP; //Saves SP to UPTR
+SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11] * 512 - 1; //SP = Start of UAP (kernel stack)
 backup;
 
 alias currentPID R0;
@@ -14,11 +12,9 @@ process_table_entry = PROCESS_TABLE + currentPID * 16;
 
 call MOD_5;
 
-
 restore;
-SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13];
+SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13]; //SP = UPTR of currently running process
 [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 9] = 0;
 [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 12] = 0;
 
-breakpoint;
 ireturn;

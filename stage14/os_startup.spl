@@ -1,3 +1,8 @@
+breakpoint;
+//load idle
+loadi(69, 11);
+loadi(70, 12);
+
 //load boot module
 loadi(54, 67);
 loadi(55, 68);
@@ -48,7 +53,7 @@ PTLR = 10;
 [PTBR + 18] = -1;
 [PTBR + 19] = "0000";
 
-//Set current PID to INIT
+//Set current PID to IDLE
 [SYSTEM_STATUS_TABLE + 1] = 0;
 
 //Process Table entry: IDLE
@@ -61,6 +66,9 @@ PTLR = 10;
 [PROCESS_TABLE + 15] = PTLR; //PTLR
 
 [81 * 512] = [69*512 + 1];
+
+[SYSTEM_STATUS_TABLE + 1] = 0;
+
 SP = 8 * 512;
 
 ireturn;

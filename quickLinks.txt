@@ -1,3 +1,5 @@
 expos Roadmap: https://exposnitc.github.io/Roadmap.html
 expos Memory Organisation: https://exposnitc.github.io/os_implementation.html
 
+
+convoy scheduling? 

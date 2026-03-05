@@ -346,3 +346,28 @@ Now, we build the interrupt handler for INT 7:
 9. set mode of process back to 0.
 
 NOTE; REMOVE EMPTY LINES AND COMMENTS FROM .XSM FILES, THEY WILL BE COUNTED AS NULL INSTRUCTIONS
+
+## Stage 11
+
+Couple of things to note about the eXpL language and the compiler:
+
+## Stage 12
+
+Making an idle process and loading it
+
+## Stage 14
+
+Page 83 - CODE
+84 & 85 - Heap
+86 & 87 - Stack
+88 - UAPN
+
+We load in the even program through the exec parameter. Now, the scheduler will be separate from the timer module. The scheduler module would be module 5
+The scheduler first saves SP, PTBR AND PTLR to the process table.
+After deciding on the new process, it would load in  the new values of SP, PTBR and PTLR. Then it also updates the fields of the system table as well.
+
+Note: the stack was changed inside the scheduler. the return is to a program instruction in the new process. because the kernel stack would have the next instruction stored when the interrupt was invoked. Unless, the new process is in a CREATED state, then it would kick start the program and execute it from user mode.
+
+
+
+
