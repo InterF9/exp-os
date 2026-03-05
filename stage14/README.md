@@ -27,5 +27,7 @@ If none is found, we cycle back and to schedule to the next one, which is idle.
 question: what happens to BP when the new program is in CREATED? is it not restored?
 
 current issues:
-seems to be scheduling IDLE all the time
+seems to be switching between IDLE and PID 1 all the time: but PID 1 is not being executed
 init was never scheduled?
+
+fixed! the issue was when setting up the process table of the Executable; it was modifying the same files of init.
