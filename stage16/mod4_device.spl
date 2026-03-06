@@ -1,0 +1,57 @@
+alias functionNum R1;
+alias currentPID R2;
+alias word R3;
+
+if (functionNum == 3) then
+
+	//Acquire Terminal
+	multipush(R0, R1, R2, R3);
+	functionNum = 8;
+	//CurrentPID is passed as it is
+	
+	call MOD_0;
+	
+	multipop(R0, R1, R2, R3);
+	
+	print R3;
+	
+	//Release Terminal
+	multipush(R0, R1, R2, R3);
+	functionNum = 9;
+	//CurrentPID is passed as it is
+	
+	call MOD_0;
+	
+	multipop(R0, R1, R2, R3);
+	return;
+else if (functionNum == 4) then
+	breakpoint;
+	//Acquire Terminal
+	
+	multipush(R0, R1, R2, R3);
+	functionNum = 8;
+	//CurrentPID is passed as it is
+	
+	call MOD_0;
+	
+	multipop(R0, R1, R2, R3);
+	read;
+	[PROCESS_TABLE + 16 * currentPID + 4] = WAIT_TERMINAL;
+	
+	
+	multipush(R0, R1, R2, R3);
+	call MOD_5; //Scheduler
+	multipop(R0, R1, R2, R3);
+	
+	alias wordAddr R3;
+	//wordAddr (R3) stores the address of the word where the data has to be transferred to.
+	alias translatedAddr R4;
+	translatedAddr = [PAGE_TABLE_BASE + 20 * [SYSTEM_STATUS_TABLE + 1] + 2 * (wordAddr / 512)] * 512 + (wordAddr % 512);
+	[translatedAddr] = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 8];
+	return;
+	
+	
+else
+	return;
+endif;
+endif;
